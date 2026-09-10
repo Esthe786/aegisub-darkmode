@@ -17,8 +17,14 @@
     </compatibility>
     <application xmlns="urn:schemas-microsoft-com:asm.v3">
         <windowsSettings>
-            <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">True/PM</dpiAware>
-            <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2,PerMonitor</dpiAwareness>
+            <!-- Aegisub still has many hard-coded pixel sizes and is not fully
+                 per-monitor DPI aware, which makes large parts of the UI render
+                 too small on HiDPI/4K displays. Declaring the process
+                 DPI-unaware together with GDI scaling ("System (Enhanced)")
+                 lets Windows scale the whole window to the display scale factor
+                 while keeping GDI-drawn text and native controls crisp. -->
+            <dpiAware xmlns="http://schemas.microsoft.com/SMI/2005/WindowsSettings">false</dpiAware>
+            <gdiScaling xmlns="http://schemas.microsoft.com/SMI/2017/WindowsSettings">true</gdiScaling>
             <longPathAware xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">true</longPathAware>
         </windowsSettings>
     </application>
