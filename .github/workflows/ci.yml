@@ -8,6 +8,11 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+# Cancel superseded runs on the same branch/PR so old builds don't pile up.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: ${{ matrix.config.name }}
@@ -42,71 +47,9 @@ jobs:
               -Dfribidi:tests=false
               -Dfribidi:docs=false
               -Dlibass:fontconfig=disabled
-          #- {
-          #  name: Windows MinGW,
-          #  os: windows-latest,
-          #  msvc: false
-          #}
-          - {
-            name: Ubuntu Debug,
-            os: ubuntu-latest,
-            buildtype: debugoptimized,
-            args: -Db_pch=false
-          }
-          - {
-            name: Ubuntu Release,
-            os: ubuntu-latest,
-            buildtype: release,
-            args: -Db_pch=false
-          }
-          - name: macOS x86_64 Debug
-            os: macos-15-intel
-            buildtype: debugoptimized
-            args: &macos_debug_args >-
-              -Dmacos_deployment_target=15.0
-              -Dbuild_osx_bundle=false
-              -Dfftw3=enabled
-              -Dlibpulse=disabled
-              -Dopenal=enabled
-          - name: macOS x86_64 Release
-            os: macos-15-intel
-            buildtype: release
-            args: &macos_release_args >-
-              -Ddefault_library=static
-              -Dbuild_osx_bundle=true
-              -Dfftw3=disabled
-              -Dlibpulse=disabled
-              -Dopenal=enabled
-              -Dlibass:fontconfig=disabled
-              -Dlibass:libunibreak=disabled
-              -Dfreetype2:bzip2=disabled
-              -Dfreetype2:brotli=disabled
-              -Dfreetype2:hvf=disabled
-              -Dfribidi:bin=false
-              -Dfribidi:docs=false
-              -Dfribidi:tests=false
-              -Dharfbuzz:gpu=disabled
-              -Dharfbuzz:raster=disabled
-              -Dharfbuzz:subset=disabled
-              -Dharfbuzz:tests=disabled
-              -Dharfbuzz:utilities=disabled
-              -Dharfbuzz:vector=disabled
-              -Dffmpeg:bzlib=disabled
-              -Dffmpeg:lzma=disabled
-              -Dffmpeg:programs=disabled
-              -Dffmpeg:tests=disabled
-              -Ddav1d:enable_tests=false
-              -Ddav1d:enable_tools=false
-              -Dzlib:tests=disabled
-              --force-fallback-for=boost,wxWidgets,libass,zlib,freetype2,fribidi,harfbuzz,ffms2,libavformat,libavcodec,libswscale,libavutil,libswresample,dav1d,hunspell,uchardet,icu-uc,icu-i18n,libcurl
-          - name: macOS arm64 Debug
-            os: macos-15
-            buildtype: debugoptimized
-            args: *macos_debug_args
-          - name: macOS arm64 Release
-            os: macos-15
-            buildtype: release
-            args: *macos_release_args
+          # This fork only ships a Windows build. The upstream Ubuntu/macOS
+          # matrix entries were removed to keep CI fast and green; restore them
+          # from upstream's .github/workflows/ci.yml if cross-platform is needed.
 
     steps:
       - uses: actions/checkout@v6
