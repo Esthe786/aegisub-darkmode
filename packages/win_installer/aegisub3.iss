@@ -1,0 +1,68 @@
+#ifdef ARM64
+#define ARCH "arm64"
+#else
+#define ARCH "x64"
+#endif
+
+#include "fragment_setupbase.iss"
+#include "fragment_strings.iss"
+
+[Setup]
+AppID={{24BC8B57-716C-444F-B46B-A3349B9164C5}
+DefaultDirName={commonpf}\Aegisub
+PrivilegesRequired=poweruser
+#ifdef ARM64
+ArchitecturesInstallIn64BitMode=arm64
+ArchitecturesAllowed=arm64
+#else
+ArchitecturesInstallIn64BitMode=x64compatible
+ArchitecturesAllowed=x64compatible
+#endif
+
+#include "fragment_mainprogram.iss"
+#include "fragment_associations.iss"
+#ifndef ARM64
+; The bundled VSFilter binary is x64-only.
+#include "fragment_codecs.iss"
+#endif
+#include "fragment_automation.iss"
+#include "fragment_translations.iss"
+#include "fragment_spelling.iss"
+#include "fragment_runtimes.iss"
+
+[Code]
+#include "fragment_shell_code.iss"
+#include "fragment_migrate_code.iss"
+#include "fragment_beautify_code.iss"
+
+procedure InitializeWizard;
+begin
+  InitializeWizardBeautify;
+end;
+
+function InitializeSetup: Boolean;
+begin
+  Result := InitializeSetupMigration;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  Updates: String;
+begin
+  CurStepChangedMigration(CurStep);
+
+  if CurStep = ssPostInstall then
+  begin
+    if WizardIsTaskSelected('checkforupdates') then
+      Updates := 'true'
+    else
+      Updates := 'false';
+
+    SaveStringToFile(
+      ExpandConstant('{app}\installer_config.json'),
+      FmtMessage('{"App": {"Auto": {"Check For Updates": %1}, "First Start": false, "Language": "%2"}}', [
+        Updates,
+        ExpandConstant('{language}')]),
+      False);
+  end;
+end;
