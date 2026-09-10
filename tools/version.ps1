@@ -79,6 +79,19 @@ if ($exactGitTag -match $semVerMatch) {
   }
 }
 
+# Fall back to placeholder values when the tree has no reachable semver tag
+# (e.g. a fresh clone/fork without upstream tags), matching tools/version.sh.
+# Without these res.rc fails to compile with "undefined keyword RESOURCE_BASE_VERSION".
+if (-not $version.ContainsKey('RESOURCE_BASE_VERSION')) {
+  $version['RESOURCE_BASE_VERSION'] = @(0, 0, 0)
+}
+if (-not $version.ContainsKey('INSTALLER_VERSION')) {
+  $version['INSTALLER_VERSION'] = '0.0.0'
+}
+if (-not $version.ContainsKey('TAGGED_RELEASE')) {
+  $version['TAGGED_RELEASE'] = $false
+}
+
 $version['BUILD_GIT_VERSION_NUMBER'] = $gitRevision
 $version['BUILD_GIT_VERSION_STRING'] = $gitVersionString
 
